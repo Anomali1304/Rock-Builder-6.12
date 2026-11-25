@@ -42,7 +42,8 @@ make O="$OUT" "$DEFCONFIG"
 make O="$OUT" -j"$BUILD_JOBS" Image.gz dtbs modules
 
 cp "$OUT/arch/arm64/boot/Image.gz" "$OUT/" 2>/dev/null || cp "$OUT/arch/arm64/boot/Image" "$OUT/"
+mkdir -p "$OUT/modules"
 cp -r "$OUT/arch/arm64/boot/dts" "$OUT/dts" 2>/dev/null || true
-find "$OUT" -name '*.ko' -exec cp --parents {} "$OUT/modules" \; 2>/dev/null || true
+find "$OUT" -type f -name "*.ko" -exec cp {} "$OUT/modules/" \\;
 
 echo "Build completed. Output: $OUT"
