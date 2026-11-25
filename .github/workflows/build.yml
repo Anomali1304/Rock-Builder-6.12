@@ -9,7 +9,7 @@ on:
         default: https://github.com/Anomali1304/android_kernel_xiaomi_rock
         type: string
       source_ref:
-        description: Source branch, tag, or commit
+        description: Source branch or tag
         required: true
         default: main
         type: string
@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison build-essential flex libssl-dev libelf-dev python3 cpio rsync git
+          sudo apt-get install -y bc bison build-essential flex libssl-dev libelf-dev python3 cpio rsync git clang lld
 
       - name: Clone kernel source
         env:
