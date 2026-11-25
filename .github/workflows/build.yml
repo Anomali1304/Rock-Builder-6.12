@@ -1,0 +1,86 @@
+name: Rock Linux 6.12 Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_repo:
+        description: Kernel source repository
+        required: true
+        default: https://github.com/Anomali1304/android_kernel_xiaomi_rock
+        type: string
+      source_ref:
+        description: Source branch, tag, or commit
+        required: true
+        default: main
+        type: string
+      defconfig:
+        description: Kernel defconfig
+        required: true
+        default: rock_defconfig
+        type: string
+      lto:
+        description: LTO mode
+        required: true
+        default: thin
+        type: choice
+        options:
+          - none
+          - thin
+          - full
+      jobs:
+        description: Build parallel jobs
+        required: true
+        default: '4'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout builder
+        uses: actions/checkout@v4
+        with:
+          ref: 6.12
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison build-essential flex libssl-dev libelf-dev python3 cpio rsync git
+
+      - name: Clone kernel source
+        env:
+          SOURCE_REPO: ${{ inputs.source_repo }}
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          git clone --depth=1 --branch "$SOURCE_REF" "$SOURCE_REPO" kernel
+
+      - name: Validate kernel version
+        run: |
+          cd kernel
+          VERSION=$(sed -n 's/^VERSION = //p' Makefile)
+          PATCHLEVEL=$(sed -n 's/^PATCHLEVEL = //p' Makefile)
+          echo "Source version: $VERSION.$PATCHLEVEL"
+          if [ "$VERSION.$PATCHLEVEL" != "6.12" ]; then
+            echo "::error::Expected Linux 6.12 source, got $VERSION.$PATCHLEVEL. Refusing to build."
+            exit 1
+          fi
+
+      - name: Build kernel
+        env:
+          DEFCONFIG: ${{ inputs.defconfig }}
+          LTO_MODE: ${{ inputs.lto }}
+          BUILD_JOBS: ${{ inputs.jobs }}
+        run: ./build.sh
+
+      - name: Upload output
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rock-linux-6.12-output
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
