@@ -1,37 +1,31 @@
 # Rock Builder 6.12
 
-GitHub Actions builder scaffold for the Poco M5 (rock) Linux 6.12 kernel port.
+Builder and porting workspace for Poco M5 (rock), MT6789 / Helio G99.
 
-## Status
+## Current status
 
-- [x] Initialize repo and development branch `6.12`
-- [x] Manual GitHub Actions workflow
-- [x] Cloud dependencies and source checkout
-- [x] Linux 6.12 source-version guard
-- [x] Basic kernel build script
-- [ ] Port source to Linux 6.12
-- [ ] Device defconfig and DT integration
-- [ ] Vendor modules integration and ABI checks
+- [x] Builder repository initialized on branch `6.12`
+- [x] Manual build workflow scaffold
+- [x] Linux version guard (rejects source versions other than 6.12)
+- [x] Source reconnaissance workflow and report script
+- [ ] Complete kernel port to 6.12
+- [ ] Device DTS/DTB and defconfig migration
+- [ ] Vendor-module migration and ABI checks
 - [ ] AnyKernel packaging
-- [ ] Boot and recovery validation
+- [ ] Boot/recovery validation
 
-**The port is not complete.** Asmodeus Rock kernel is the intended 5.10 baseline. The builder refuses to build anything except Linux 6.12, preventing a 5.10 build from being mislabeled.
+**Not a flashable kernel yet.** The intended Poco M5 baseline is the Asmodeus source, currently Linux 5.10. The build workflow rejects that baseline until a genuine 6.12 port exists.
 
-## Run
+## Source references
 
-1. Open Actions.
-2. Select **Rock Linux 6.12 Builder**.
-3. Run the workflow on branch `6.12`.
-4. Choose a source repo/ref that is actually Linux 6.12, defconfig, LTO, and job count.
-5. Download the workflow artifact.
+- Device baseline: https://github.com/Asmodeus7999/android_kernel_xiaomi_rock
+- Linux 6.12 reference: https://github.com/riza220201/itel-rs4-kernel/tree/6.12
+- MTK 6.12 modules reference: https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12
+- X6837 DTS: reference material only, not a Poco M5 device configuration.
 
-## Defaults
+## Workflows
 
-- Device: Poco M5 (rock)
-- Architecture: arm64
-- Compiler: LLVM/Clang
-- LTO: Thin
-- Intended source baseline: Asmodeus Rock kernel
-- Target: Linux 6.12
+- **Rock Linux 6.12 Builder**: build only a genuine 6.12 source.
+- **Rock 6.12 Source Audit**: clones the references and uploads a source inventory artifact. Run it on branch `6.12`.
 
-This is an initial builder scaffold. Device porting and packaging work remain.
+The source audit is not a port and does not modify kernel sources. Porting is tracked in `PORTING.md`.
