@@ -1,0 +1,34 @@
+name: Rock 6.12 Source Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout builder
+        uses: actions/checkout@v4
+        with:
+          ref: 6.12
+
+      - name: Fetch source references
+        run: |
+          mkdir -p sources
+          git clone --depth=1 https://github.com/Asmodeus7999/android_kernel_xiaomi_rock sources/rock-base
+          git clone --depth=1 --branch 6.12 https://github.com/riza220201/itel-rs4-kernel sources/rs4-612
+          git clone --depth=1 https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12 sources/mtk-modules-612
+
+      - name: Generate source inventory
+        run: ./tools/source-audit.sh sources audit
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: rock-6.12-source-audit
+          path: audit/
+          retention-days: 14
