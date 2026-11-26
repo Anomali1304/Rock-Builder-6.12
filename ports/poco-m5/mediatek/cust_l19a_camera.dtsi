@@ -402,18 +402,7 @@
 };
 /* CAMERA SMART LDO  end */
 
-/* CAMERA FLASHLIGHT */
-&flashlights_led191 {
-        pinctrl-names = "default", "hw_ch0_high",
-                "hw_ch0_low", "hw_ch1_high",
-                "hw_ch1_low";
-        pinctrl-0 = <&flashlight_pins_default>;
-        pinctrl-1 = <&flashlight_pins_en_output1>;
-        pinctrl-2 = <&flashlight_pins_en_output0>;
-        pinctrl-3 = <&flashlight_pins_sel_output1>;
-        pinctrl-4 = <&flashlight_pins_sel_output0>;
-        status = "okay";
-};
+/* CAMERA FLASHLIGHT config is merged into the overlay node in rock.dts. */
 &pio {
         flashlight_pins_default: flashlightdefault {
         };
