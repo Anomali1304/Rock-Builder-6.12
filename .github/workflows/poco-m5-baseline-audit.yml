@@ -1,0 +1,45 @@
+name: Poco M5 Linux 6.12 Baseline Audit
+on:
+  push:
+    branches: [poco-m5-port-audit]
+    paths: [.github/workflows/poco-m5-baseline-audit.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  baseline-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit Poco M5 kernel baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit
+          git clone --depth=1 https://github.com/Asmodeus7999/android_kernel_xiaomi_rock.git baseline
+          {
+            echo '# Poco M5 baseline audit'
+            echo
+            echo "- Repository: https://github.com/Asmodeus7999/android_kernel_xiaomi_rock"
+            echo "- Commit: $(git -C baseline rev-parse HEAD)"
+            echo "- Branch: $(git -C baseline branch --show-current || true)"
+            echo
+            echo '## Kernel version'
+            sed -n '1,5p' baseline/Makefile
+            echo
+            echo '## Poco/MT6789 device-tree candidates'
+            find baseline/arch/arm64/boot/dts -type f 2>/dev/null | grep -Ei 'rock|mt6789' | sort || true
+            echo
+            echo '## Device defconfig candidates'
+            find baseline/arch/arm64/configs -type f 2>/dev/null | grep -Ei 'rock|mt6789' | sort || true
+            echo
+            echo '## Build system indicators'
+            find baseline -maxdepth 3 -type f \( -name 'build.sh' -o -name 'build.config*' -o -name 'Makefile' \) | head -100
+          } > audit/poco-m5-baseline.md
+          cat audit/poco-m5-baseline.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: poco-m5-baseline-audit
+          path: audit/poco-m5-baseline.md
+          retention-days: 14
