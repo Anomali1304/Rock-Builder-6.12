@@ -418,6 +418,13 @@
 	flashlights_led191: flashlights_led191 {
 		compatible = "mediatek,flashlights_led191";
 		decouple = <0>;
+		pinctrl-names = "default", "hw_ch0_high", "hw_ch0_low", "hw_ch1_high", "hw_ch1_low";
+		pinctrl-0 = <&flashlight_pins_default>;
+		pinctrl-1 = <&flashlight_pins_en_output1>;
+		pinctrl-2 = <&flashlight_pins_en_output0>;
+		pinctrl-3 = <&flashlight_pins_sel_output1>;
+		pinctrl-4 = <&flashlight_pins_sel_output0>;
+		status = "okay";
 		channel@1 { type = <0>; ct = <0>; part = <0>; };
 		channel@2 { type = <0>; ct = <1>; part = <0>; };
 	};
