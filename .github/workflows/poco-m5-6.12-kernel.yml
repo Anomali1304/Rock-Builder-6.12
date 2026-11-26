@@ -1,5 +1,9 @@
 name: Poco M5 6.12 kernel build
 on:
+  push:
+    branches: [poco-m5-6.12-port]
+    paths:
+      - .github/workflows/poco-m5-6.12-kernel.yml
   workflow_dispatch:
     inputs:
       mode:
