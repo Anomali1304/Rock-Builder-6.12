@@ -50,7 +50,17 @@ jobs:
             -undef -D__DTS__ -x assembler-with-cpp \
             "$DTS/mt6789.dts" > out/mt6789-base.pp.dts
           dtc -@ -I dts -O dtb -o out/mt6789-base.dtb out/mt6789-base.pp.dts
-          fdtoverlay -i out/mt6789-base.dtb -o out/poco-m5-merged.dtb out/rock-poco-m5-overlay.dtbo
+          if ! fdtoverlay -i out/mt6789-base.dtb -o out/poco-m5-merged.dtb out/rock-poco-m5-overlay.dtbo; then
+            echo 'Unresolved Poco overlay labels in the selected 6.12 base:'
+            python3 - <<'PYTHON'
+          import subprocess
+          overlay = set(subprocess.check_output(['fdtget','-p','out/rock-poco-m5-overlay.dtbo','/__fixups__'], text=True).split())
+          base = set(subprocess.check_output(['fdtget','-p','out/mt6789-base.dtb','/__symbols__'], text=True).split())
+          for label in sorted(overlay - base):
+              print(label)
+          PYTHON
+            exit 1
+          fi
           file out/mt6789-base.dtb out/poco-m5-merged.dtb
       - uses: actions/upload-artifact@v4
         with:
