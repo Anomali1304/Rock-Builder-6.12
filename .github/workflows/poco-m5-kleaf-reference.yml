@@ -5,7 +5,18 @@ on:
     branches:
       - poco-m5-kleaf-port
     paths:
-      - ci/poco-m5-ikko.xml
+      - .github/workflows/**
+      - ci/**
+      - patches/**
+      - tools/**
+      - kernel/**
+      - build.sh
+      - build.config*
+      - BUILD.bazel
+      - '*.bzl'
+      - '**/*.bzl'
+      - README.md
+      - PORTING.md
   workflow_dispatch:
     inputs:
       mode:
@@ -31,7 +42,7 @@ env:
 
 jobs:
   reference:
-    name: Pinned ACK / IKKO Kleaf validation
+    name: Actions primary — pinned ACK / IKKO validation
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     steps:
@@ -48,7 +59,7 @@ jobs:
           set -euo pipefail
           {
             echo "## Kleaf CI scope"
-            echo "This workflow validates the ACK/IKKO reference path only. The MindOne target and any outputs are **not** Poco M5 images and must not be flashed to the Poco M5."
+            echo "GitHub Actions is the primary reproducible source-sync/build path for this port. At the current stage this workflow syncs pinned ACK/IKKO reference source and may build IKKO MindOne targets only; those targets and outputs are **not** Poco M5 images and must not be flashed to the Poco M5."
             echo
             echo "Selected mode: \`$BUILD_MODE\`."
             echo

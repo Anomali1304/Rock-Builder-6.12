@@ -1,6 +1,15 @@
-# GitHub Actions Kleaf Reference Workflow
+# GitHub Actions Kleaf Workflow
 
-The workflow at `.github/workflows/poco-m5-kleaf-reference.yml` validates the ACK/Kleaf method used by the IKKO MindOne reference. A push to `poco-m5-kleaf-port` that changes `ci/poco-m5-ikko.xml` starts pinned source sync. It does not yet build a Poco M5 kernel.
+GitHub Actions is the primary reproducible source-sync and build environment for the Poco M5 6.12 port. The repository tracks manifests, port configuration, patches and scripts; each Actions run fetches the pinned upstream source into its temporary runner. The full upstream source tree is not checked into this repository. A local checkout may be used for source inspection and patch authoring, but the reproducible sync/build path is Actions.
+
+## Triggers and modes
+
+A push to `poco-m5-kleaf-port` that changes the workflow, `ci/**`, `patches/**`, `tools/**`, `kernel/**`, root build configuration, `README.md` or `PORTING.md` starts the pinned source-sync check. Manual dispatch currently offers:
+
+- `source-sync`: sync the pinned source projects and verify their revisions.
+- `ikko-reference-build`: manually build the IKKO MindOne reference targets `//common/mindone:mindone`, `//common/mindone:mindone_images` and `//common/mindone:mindone_dtbo`.
+
+The reference build is not a Poco M5 build. Manual dispatch may require the workflow to be available on the repository's default branch; the feature-branch push trigger works independently.
 
 ## Pinned sources
 
@@ -11,15 +20,10 @@ The workflow at `.github/workflows/poco-m5-kleaf-reference.yml` validates the AC
 
 The workflow verifies both commit IDs and fails closed if the ACK manifest branch no longer points at the reviewed pin.
 
-## Modes and outputs
+## Current status and safety
 
-- `source-sync`: sync the pinned source projects and verify revisions. The source-sync check is the mode used by a qualifying feature-branch push.
-- `ikko-reference-build`: manually build `//common/mindone:mindone`, `//common/mindone:mindone_images`, and `//common/mindone:mindone_dtbo` to test the reference Kleaf path.
+The source-sync run [45757083279](https://github.com/Anomali1304/Rock-Builder-6.12/actions/runs/45757083279) completed successfully in about 7½ minutes and reported about 58 GB free on the runner after sync. This is one observed run, not a speed or capacity guarantee.
 
-The optional build targets and any generated files belong to IKKO MindOne. The workflow intentionally does not upload or label any resulting image as a Poco artifact. It has read-only repository permissions and does not push code, deploy, or touch a device. GitHub only offers manual `workflow_dispatch` for a workflow present on the default branch; the feature-branch push path is independent of that limitation.
+No Poco-specific Kleaf target exists yet, so the current workflow does not build or publish a Poco kernel, DTBO, vendor_boot or vendor_dlkm image. The optional MindOne build is reference-only and must not be flashed to a Poco M5. Before enabling a Poco candidate build, the port still needs device-matched DTS/DTBO and configuration, module integration/load lists, ABI/symbol checks, correct image packaging and validation gates. A successful compile would not by itself prove bootability.
 
-## Limits and validation status
-
-The source-sync run reports runner disk capacity before and after syncing. It does not promise better speed or available storage than the sandbox. The optional Bazel reference build is a separate validation; it must actually be run before its success can be claimed. No Actions result can establish Poco compatibility or bootability.
-
-Before this can build Poco M5, the port still needs a Poco-specific Kleaf target, board DTS/DTBO and configuration, device-matched module integration/load lists, ABI/symbol checks, and correct image packaging. A successful IKKO reference build would validate only the build environment and reference method, not Poco compatibility or bootability.
+The workflow has read-only repository permissions. It does not push code, deploy, or interact with a phone. Candidate artifacts will only be added after the Poco-specific target and safety checks are implemented.
