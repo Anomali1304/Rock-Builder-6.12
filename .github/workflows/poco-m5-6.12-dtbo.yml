@@ -1,0 +1,48 @@
+name: Poco M5 6.12 DTBO smoke check
+on:
+  push:
+    branches: [poco-m5-6.12-port]
+    paths:
+      - ports/poco-m5/**
+      - .github/workflows/poco-m5-6.12-dtbo.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dtbo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install device-tree compiler
+        run: sudo apt-get update && sudo apt-get install -y device-tree-compiler
+      - name: Fetch MTK 6.12 DTS/header reference
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 --branch lineage-23.2-kernel-6.12 \
+            https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12.git kernel612
+      - name: Compile Poco M5 overlay against MTK 6.12 bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          DTS=kernel612/arch/arm64/boot/dts/mediatek
+          install -m 0644 ports/poco-m5/rock.dts "$DTS/rock-poco-m5-overlay.dts"
+          install -m 0644 ports/poco-m5/mediatek/cust_l19a_camera.dtsi "$DTS/cust_l19a_camera.dtsi"
+          install -m 0644 ports/poco-m5/mediatek/rock-sia8152.dtsi "$DTS/rock-sia8152.dtsi"
+          mkdir -p out
+          cpp -nostdinc \
+            -I kernel612/include \
+            -I kernel612/arch/arm64/boot/dts \
+            -I "$DTS" \
+            -undef -D__DTS__ -x assembler-with-cpp \
+            "$DTS/rock-poco-m5-overlay.dts" > out/rock-poco-m5-overlay.pp.dts
+          dtc -@ -I dts -O dtb \
+            -o out/rock-poco-m5-overlay.dtbo \
+            out/rock-poco-m5-overlay.pp.dts
+          file out/rock-poco-m5-overlay.dtbo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: poco-m5-6.12-dtbo-smoke-check
+          path: out/rock-poco-m5-overlay.dtbo
+          retention-days: 14
