@@ -50,7 +50,7 @@ jobs:
             -undef -D__DTS__ -x assembler-with-cpp \
             "$DTS/mt6789.dts" > out/mt6789-base.pp.dts
           dtc -@ -I dts -O dtb -o out/mt6789-base.dtb out/mt6789-base.pp.dts
-          if ! fdtoverlay -i out/mt6789-base.dtb -o out/poco-m5-merged.dtb out/rock-poco-m5-overlay.dtbo; then
+          if ! fdtoverlay -v -i out/mt6789-base.dtb -o out/poco-m5-merged.dtb out/rock-poco-m5-overlay.dtbo; then
             echo 'Unresolved Poco overlay labels in the selected 6.12 base:'
             python3 - <<'PYTHON'
           import subprocess
@@ -59,10 +59,15 @@ jobs:
           for label in sorted(overlay - base):
               print(label)
           PYTHON
+            echo 'Overlay fragment targets:'
+            dtc -I dtb -O dts out/rock-poco-m5-overlay.dtbo | grep -E 'fragment@[0-9]+|target(-path)? =' || true
+            echo 'Base symbol names:'
+            fdtget -p out/mt6789-base.dtb /__symbols__ || true
             exit 1
           fi
           file out/mt6789-base.dtb out/poco-m5-merged.dtb
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: poco-m5-6.12-dtbo-smoke-check
           path: |
