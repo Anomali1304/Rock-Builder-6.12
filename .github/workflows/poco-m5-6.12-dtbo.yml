@@ -43,8 +43,20 @@ jobs:
             -o out/rock-poco-m5-overlay.dtbo \
             out/rock-poco-m5-overlay.pp.dts
           file out/rock-poco-m5-overlay.dtbo
+          cpp -nostdinc \
+            -I kernel612/include \
+            -I kernel612/arch/arm64/boot/dts \
+            -I "$DTS" \
+            -undef -D__DTS__ -x assembler-with-cpp \
+            "$DTS/mt6789.dts" > out/mt6789-base.pp.dts
+          dtc -@ -I dts -O dtb -o out/mt6789-base.dtb out/mt6789-base.pp.dts
+          fdtoverlay -i out/mt6789-base.dtb -o out/poco-m5-merged.dtb out/rock-poco-m5-overlay.dtbo
+          file out/mt6789-base.dtb out/poco-m5-merged.dtb
       - uses: actions/upload-artifact@v4
         with:
           name: poco-m5-6.12-dtbo-smoke-check
-          path: out/rock-poco-m5-overlay.dtbo
+          path: |
+            out/rock-poco-m5-overlay.dtbo
+            out/mt6789-base.dtb
+            out/poco-m5-merged.dtb
           retention-days: 14
