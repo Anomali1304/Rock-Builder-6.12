@@ -35,7 +35,7 @@ jobs:
             find baseline/arch/arm64/configs -type f 2>/dev/null | grep -Ei 'rock|mt6789' | sort || true
             echo
             echo '## Build system indicators'
-            find baseline -maxdepth 3 -type f \( -name 'build.sh' -o -name 'build.config*' -o -name 'Makefile' \) | head -100
+            find baseline -maxdepth 3 -type f \( -name 'build.sh' -o -name 'build.config*' -o -name 'Makefile' \) -print > audit/build-system-files.txt\n            sed -n '1,100p' audit/build-system-files.txt
           } > audit/poco-m5-baseline.md
           cat audit/poco-m5-baseline.md
       - uses: actions/upload-artifact@v4
