@@ -1,0 +1,99 @@
+name: Poco M5 6.12 kernel build
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Kleaf build mode
+        required: true
+        type: choice
+        default: user
+        options:
+          - user
+          - userdebug
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free runner disk space
+        shell: bash
+        run: |
+          sudo rm -rf /usr/local/lib/android/sdk /opt/hostedtoolcache/CodeQL /usr/share/dotnet /usr/local/share/powershell || true
+          df -h /
+      - name: Install host tools and repo launcher
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl git python3 device-tree-compiler
+          mkdir -p "$HOME/bin"
+          curl -fsSL https://storage.googleapis.com/git-repo-downloads/repo -o "$HOME/bin/repo"
+          chmod +x "$HOME/bin/repo"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Initialize official Android 16 6.12 kernel manifest
+        shell: bash
+        run: |
+          repo init -u https://android.googlesource.com/kernel/manifest \
+            -b common-android16-6.12 --depth=1 \
+            --groups=default,ddk,ddk-external
+          mkdir -p .repo/local_manifests
+          cat > .repo/local_manifests/poco-kernel.xml <<'XML'
+          <manifest>
+            <remove-project name="kernel/common" />
+            <project path="kernel-6.12" name="kernel/common" revision="android16-6.12" groups="default" />
+          </manifest>
+          XML
+          repo sync -c -j2 --no-tags --no-clone-bundle --force-sync
+      - name: Fetch MTK 6.12 device modules
+        shell: bash
+        run: |
+          git clone --depth=1 --branch lineage-23.2-kernel-6.12 \
+            https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12.git \
+            kernel_device_modules-6.12
+      - name: Compile and apply Poco M5 DTBO
+        shell: bash
+        run: |
+          set -euo pipefail
+          DTS=kernel_device_modules-6.12/arch/arm64/boot/dts/mediatek
+          install -m 0644 ports/poco-m5/rock.dts "$DTS/rock-poco-m5-overlay.dts"
+          install -m 0644 ports/poco-m5/mediatek/cust_l19a_camera.dtsi "$DTS/cust_l19a_camera.dtsi"
+          install -m 0644 ports/poco-m5/mediatek/rock-sia8152.dtsi "$DTS/rock-sia8152.dtsi"
+          install -m 0644 ports/poco-m5/mediatek/cust_rock_fingerprint.dtsi "$DTS/cust_rock_fingerprint.dtsi"
+          install -m 0644 ports/poco-m5/mediatek/cust_mt6789_camera_v4l2-poco.dtsi "$DTS/cust_mt6789_camera_v4l2-poco.dtsi"
+          mkdir -p out/dtbo
+          cpp -nostdinc -I kernel_device_modules-6.12/include \
+            -I kernel_device_modules-6.12/arch/arm64/boot/dts -I "$DTS" \
+            -undef -D__DTS__ -x assembler-with-cpp \
+            "$DTS/rock-poco-m5-overlay.dts" > out/dtbo/rock-poco-m5-overlay.pp.dts
+          dtc -@ -I dts -O dtb -o out/dtbo/rock-poco-m5-overlay.dtbo \
+            out/dtbo/rock-poco-m5-overlay.pp.dts
+          cpp -nostdinc -I kernel_device_modules-6.12/include \
+            -I kernel_device_modules-6.12/arch/arm64/boot/dts -I "$DTS" \
+            -undef -D__DTS__ -x assembler-with-cpp \
+            "$DTS/mt6789.dts" > out/dtbo/mt6789-base.pp.dts
+          dtc -@ -I dts -O dtb -o out/dtbo/mt6789-base.dtb out/dtbo/mt6789-base.pp.dts
+          fdtoverlay -v -i out/dtbo/mt6789-base.dtb \
+            -o out/dtbo/poco-m5-merged.dtb out/dtbo/rock-poco-m5-overlay.dtbo
+      - name: Build MTK mgk_64_k612 kernel and modules with Kleaf
+        shell: bash
+        env:
+          BUILD_CONFIG: kernel_device_modules-6.12/build.config.mtk_kernel_device_modules
+          KERNEL_DIR: kernel_device_modules-6.12
+          PROJECT: mgk_64_k612
+          MODE: ${{ inputs.mode }}
+          OUT_DIR: ${{ github.workspace }}/out/mtk
+          DEBUG: "1"
+        run: |
+          mkdir -p "$OUT_DIR"
+          kernel_device_modules-6.12/build.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: poco-m5-6.12-kernel-${{ inputs.mode }}
+          path: |
+            out/dtbo/**
+            out/mtk/dist/**
+          if-no-files-found: warn
+          retention-days: 14
