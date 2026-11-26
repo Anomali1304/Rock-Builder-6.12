@@ -11,7 +11,7 @@ Target: Poco M5 (rock), MediaTek MT6789 / Helio G99.
 
 ## Port phases
 
-1. [x] Create builder branch and CI scaffold.
+1. [x] Create the feature branch and pinned Kleaf reference CI scaffold; its IKKO target is not a Poco build.
 2. [ ] Audit baseline: version, branch/commit, device DTS/DTB, defconfig, kernel config, in-tree MTK drivers, external modules and build scripts.
 3. [ ] Establish a clean Linux 6.12 kernel tree and identify source/API migration deltas. Preserve upstream history where possible.
 4. [ ] Port MT6789 SoC support and board-specific drivers. Resolve compile errors by subsystem, not by broad blind edits.
@@ -25,5 +25,6 @@ Target: Poco M5 (rock), MediaTek MT6789 / Helio G99.
 - Never label a 5.10 build as 6.12.
 - Do not replace Poco M5 DTS or defconfig with Itel/Infinix equivalents.
 - Do not blindly copy vendor modules across kernel versions.
+- The optional `//common/mindone:*` Actions target is an IKKO MindOne reference build, never a Poco M5 artifact.
 - Keep port commits small and reviewable. Record source commit IDs in audit artifacts.
 - Treat successful compilation as a milestone, not proof of bootability or hardware functionality.

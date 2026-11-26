@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Replace the generic kernel/common project with the pinned IKKO Kleaf reference. -->
+  <remove-project name="kernel/common" />
+  <remote name="ikko" fetch="https://github.com/" />
+  <project path="common"
+           name="iasnezhkov/android_kernel_ikko_mindone"
+           remote="ikko"
+           revision="a71515dbaf0d539ffb36416f14186dad17eef743"
+           upstream="refs/heads/android16-6.12"
+           clone-depth="1" />
+</manifest>

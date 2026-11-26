@@ -1,0 +1,144 @@
+name: Poco M5 6.12 Kleaf CI (reference only)
+
+on:
+  push:
+    branches:
+      - poco-m5-kleaf-port
+    paths:
+      - .github/workflows/poco-m5-kleaf-reference.yml
+      - ci/**
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Choose a source sync check or an IKKO MindOne reference build (not Poco M5)"
+        required: true
+        type: choice
+        default: source-sync
+        options:
+          - source-sync
+          - ikko-reference-build
+
+permissions:
+  contents: read
+
+concurrency:
+  group: poco-m5-kleaf-reference-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ACK_MANIFEST_BRANCH: common-android16-6.12
+  ACK_MANIFEST_REV: 1e6983be370c1baf010f37ca80f93abb419ebc39
+  IKKO_KERNEL_REV: a71515dbaf0d539ffb36416f14186dad17eef743
+
+jobs:
+  reference:
+    name: Pinned ACK / IKKO Kleaf validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Checkout builder repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Report scope and runner capacity
+        shell: bash
+        env:
+          BUILD_MODE: ${{ inputs.mode || 'source-sync' }}
+        run: |
+          set -euo pipefail
+          {
+            echo "## Kleaf CI scope"
+            echo "This workflow validates the ACK/IKKO reference path only. The MindOne target and any outputs are **not** Poco M5 images and must not be flashed to the Poco M5."
+            echo
+            echo "Selected mode: \`$BUILD_MODE\`."
+            echo
+            echo "### Runner capacity before source sync"
+            echo '```text'
+            df -h /
+            free -h
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          df -h /
+          free -h
+
+      - name: Install repo launcher
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/bin"
+          curl --fail --silent --show-error --location \
+            https://storage.googleapis.com/git-repo-downloads/repo \
+            --output "$HOME/bin/repo"
+          chmod 0755 "$HOME/bin/repo"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+
+      - name: Initialize pinned ACK workspace
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ack-workspace"
+          cd "$RUNNER_TEMP/ack-workspace"
+          repo init \
+            --no-clone-bundle \
+            --no-tags \
+            --depth=1 \
+            -u https://android.googlesource.com/kernel/manifest \
+            -b "$ACK_MANIFEST_BRANCH"
+          actual_manifest_rev="$(git -C .repo/manifests rev-parse HEAD)"
+          if [[ "$actual_manifest_rev" != "$ACK_MANIFEST_REV" ]]; then
+            echo "::error::ACK manifest branch moved: expected $ACK_MANIFEST_REV, got $actual_manifest_rev. Update the reviewed pin before building."
+            exit 1
+          fi
+          mkdir -p .repo/local_manifests
+          install -m 0644 "$GITHUB_WORKSPACE/ci/poco-m5-ikko.xml" \
+            .repo/local_manifests/poco-m5-ikko.xml
+
+      - name: Sync pinned source projects
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ack-workspace"
+          repo sync -c -j4 --no-tags --no-clone-bundle
+          actual_ikko_rev="$(git -C common rev-parse HEAD)"
+          if [[ "$actual_ikko_rev" != "$IKKO_KERNEL_REV" ]]; then
+            echo "::error::IKKO source revision mismatch: expected $IKKO_KERNEL_REV, got $actual_ikko_rev."
+            exit 1
+          fi
+          repo manifest -r > "$RUNNER_TEMP/pinned-manifest.xml"
+          {
+            echo "### Resolved source pins"
+            echo "- ACK manifest: \`$ACK_MANIFEST_REV\`"
+            echo "- IKKO reference tree: \`$IKKO_KERNEL_REV\`"
+            echo
+            echo "### Disk after source sync"
+            echo '```text'
+            df -h /
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          df -h /
+
+      - name: Build IKKO MindOne reference targets (not Poco)
+        if: ${{ inputs.mode == 'ikko-reference-build' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ack-workspace"
+          ./tools/bazel build \
+            //common/mindone:mindone \
+            //common/mindone:mindone_images \
+            //common/mindone:mindone_dtbo
+          {
+            echo
+            echo "The Kleaf reference compilation passed. These targets are for IKKO MindOne, not Poco M5; this workflow intentionally does not upload or label their images as Poco artifacts."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Confirm no flashable Poco artifacts were published
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo
+            echo "## Artifact safety"
+            echo "No kernel, DTBO, vendor_boot, or vendor_dlkm image is published by this reference workflow. A Poco-specific Kleaf target, module/DTS port, ABI checks, and device validation are still required."
+          } >> "$GITHUB_STEP_SUMMARY"
