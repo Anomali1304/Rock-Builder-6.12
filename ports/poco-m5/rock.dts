@@ -386,6 +386,35 @@
 /*L19AT HQ-254277 fix lk jeita by zhaohan at 2022/10/25 end*/
 };
 
+&i2c5 {
+bq2589x: bq2589x@6a {
+status = "okay";
+compatible = "syv,syv6970QCC", "sc,sc89890h";
+reg = <0x6a>;
+charger_name = "primary_chg";
+interrupt-parent = <&pio>;
+interrupts = <4 IRQ_TYPE_EDGE_FALLING 4 0>;
+sc,irq-gpio = <&pio 4 0>;
+sc,chg-en-gpio = <&pio 3 0>;
+switch_sel_en_gpio = <&pio 107 0x0>;
+ti,bq2589x,charge-detect-enable;
+interrupt-names = "chr_stat";
+ti,bq2589x,termination-current = <210>;
+phys = <&u2port0 PHY_TYPE_USB2>;
+phy-names = "usb2-phy";
+usb = <&usb>;
+};
+};
+
+&{/} {
+flashlights_led191: flashlights_led191 {
+compatible = "mediatek,flashlights_led191";
+decouple = <0>;
+channel@1 { type = <0>; ct = <0>; part = <0>; };
+channel@2 { type = <0>; ct = <1>; part = <0>; };
+};
+};
+
 &charger {
 	charger = <&bq2589x>;
 	battery_cv = <4450000>;
@@ -448,8 +477,11 @@
 
 /* Huaqin modify for HQ-193847 by liunianliang at 2022/03/25 start */
 
-&swtp {
- 	swtp-gpio = <&pio 92 0>;
+&{/soc} {
+swtp: swtp {
+compatible = "mediatek, swtp-eint";
+swtp-gpio = <&pio 92 0>;
+};
 };
  /* Huaqin modify for HQ-193847 by liunianliang at 2022/03/25 end */
 #include "mediatek/cust_rock_fingerprint.dtsi"
