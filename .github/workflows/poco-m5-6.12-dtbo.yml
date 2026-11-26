@@ -30,6 +30,7 @@ jobs:
           install -m 0644 ports/poco-m5/rock.dts "$DTS/rock-poco-m5-overlay.dts"
           install -m 0644 ports/poco-m5/mediatek/cust_l19a_camera.dtsi "$DTS/cust_l19a_camera.dtsi"
           install -m 0644 ports/poco-m5/mediatek/rock-sia8152.dtsi "$DTS/rock-sia8152.dtsi"
+          install -m 0644 ports/poco-m5/mediatek/cust_rock_fingerprint.dtsi "$DTS/cust_rock_fingerprint.dtsi"
           mkdir -p out
           cpp -nostdinc \
             -I kernel612/include \
