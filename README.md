@@ -28,6 +28,6 @@ Builder and porting workspace for Poco M5 (rock), MT6789 / Helio G99.
 
 - **Rock Linux 6.12 Builder**: build only a genuine 6.12 source.
 - **Rock 6.12 Source Audit**: clones the references and uploads a source inventory artifact. Run it on branch `6.12`.
-- **Poco M5 6.12 Kleaf CI (reference only)**: a push to `poco-m5-kleaf-port` that changes the workflow or `ci/` files runs pinned ACK/IKKO source sync; manual dispatch can optionally build IKKO MindOne reference targets. It is not a Poco build and does not publish images.
+- **Poco M5 6.12 Kleaf CI (reference only)**: a push to `poco-m5-kleaf-port` that changes `ci/poco-m5-ikko.xml` runs pinned ACK/IKKO source sync; manual dispatch can optionally build IKKO MindOne reference targets. It is not a Poco build and does not publish images.
 
 The source audit is not a port and does not modify kernel sources. The optional MindOne target is also reference-only and must not be flashed to a Poco M5. Porting is tracked in `PORTING.md`.

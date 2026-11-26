@@ -5,8 +5,7 @@ on:
     branches:
       - poco-m5-kleaf-port
     paths:
-      - .github/workflows/poco-m5-kleaf-reference.yml
-      - ci/**
+      - ci/poco-m5-ikko.xml
   workflow_dispatch:
     inputs:
       mode:
