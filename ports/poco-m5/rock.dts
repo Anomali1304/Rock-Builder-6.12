@@ -202,7 +202,7 @@
 /* GPS GPIO standardization end */
 
 #include "mediatek/cust_mt6789_touch_1080x2400.dtsi"
-#include "mediatek/cust_mt6789_camera_v4l2.dtsi"
+#include "mediatek/cust_mt6789_camera_v4l2-poco.dtsi"
 
 /* L19A code for HQ-194500 by lukuan at 2022.4.8 start */
 &i2c3 {
