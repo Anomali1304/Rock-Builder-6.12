@@ -56,6 +56,16 @@ jobs:
           git clone --depth=1 --branch lineage-23.2-kernel-6.12 \
             https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12.git \
             kernel_device_modules-6.12
+      - name: Add MediaTek MGK Kleaf rules
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth=1 --branch android-16-release-w1vo36.88-36-7 \
+            https://github.com/MotorolaMobilityLLC/kernel-build-bazel_mgk_rules.git \
+            build/bazel_mgk_rules
+          cat build/bazel_mgk_rules/kleaf/bazel.WORKSPACE >> WORKSPACE.bzlmod
+          mkdir -p "$GITHUB_WORKSPACE/../vendor/mediatek/kernel_modules"
+          ln -s ../vendor vendor
       - name: Compile and apply Poco M5 DTBO
         shell: bash
         run: |
