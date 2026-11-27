@@ -58,6 +58,10 @@ jobs:
             kernel_device_modules-6.12
           git -C kernel_device_modules-6.12 fetch --depth=1 origin 293237daf841ec7288765775832ac9a3f51a6872
           git -C kernel_device_modules-6.12 checkout --detach 293237daf841ec7288765775832ac9a3f51a6872
+          # These GKI outputs are already included by get_gki_modules_list();
+          # drop duplicate eng/userdebug additions from this MTK tree.
+          sed -i '/"fs\/pstore\/pstore_blk.ko",/d; /"fs\/pstore\/pstore_zone.ko",/d' \
+            kernel_device_modules-6.12/kernel/kleaf/mgk_modules.bzl
       - name: Add MediaTek MGK Kleaf rules
         shell: bash
         run: |
