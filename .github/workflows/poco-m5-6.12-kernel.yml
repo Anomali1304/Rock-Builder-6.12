@@ -78,6 +78,19 @@ jobs:
           cp build/bazel_mgk_rules/bzlmod/mgk.MODULE.bazel MODULE.bazel
           mkdir -p "$GITHUB_WORKSPACE/../vendor/mediatek/kernel_modules"
           ln -s ../vendor vendor
+          # Public MT6789 vendor-module source used by the working Jelly Star 6.12 port.
+          git init vendor-modules-source
+          git -C vendor-modules-source remote add origin https://github.com/osquera/android_kernel_unihertz_jellystar-mediatek_modules.git
+          git -C vendor-modules-source fetch --depth=1 origin 95cd85e39dacc2a49fc32c5aff96cace375a6faa
+          git -C vendor-modules-source checkout --detach FETCH_HEAD
+          cp -a vendor-modules-source/. "$GITHUB_WORKSPACE/../vendor/mediatek/kernel_modules/"
+          # Jelly Star publishes the MT6789 Mali tree under a16w_jm; expose the
+          # expected a16w path only for this compile probe, not as a compatibility claim.
+          MALI="$GITHUB_WORKSPACE/../vendor/mediatek/kernel_modules/gpu/gpu_mali/mali_avalon"
+          if [[ ! -e "$MALI/a16w" && -d "$MALI/a16w_jm" ]]; then
+            ln -s a16w_jm "$MALI/a16w"
+          fi
+          test -d "$MALI/a16w/drivers/base/arm"
       - name: Compile and apply Poco M5 DTBO
         shell: bash
         run: |
@@ -117,8 +130,6 @@ jobs:
           # The runner's Bazel configuration disables external repo downloads;
           # Kleaf Bzlmod requires fetching rules_shell and other declared deps.
           sed -i 's/--experimental_writable_outputs/--repository_disable_download=false --nokmi_symbol_list_violations_check --experimental_writable_outputs/' kernel_device_modules-6.12/build.sh
-          # Skip vendor-module dist packaging; only compile the MTK kernel target.
-          sed -i '/tools\/bazel .* run .*KLEAF_ARGS/,+1d' kernel_device_modules-6.12/build.sh
           kernel_device_modules-6.12/build.sh
           mkdir -p out/kernel-only
           find "$OUT_DIR" -type f \( -name Image -o -name Image.gz -o -name vmlinux -o -name .config \) -exec cp --parents {} out/kernel-only/ \;
@@ -129,7 +140,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: poco-m5-6.12-kernel-image-${{ inputs.mode || 'user' }}-diagnostic
+          name: poco-m5-6.12-kernel-and-modules-${{ inputs.mode || 'user' }}-diagnostic
           path: |
             out/dtbo/**
             out/kernel-only/**
