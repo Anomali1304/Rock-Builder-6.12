@@ -104,6 +104,9 @@ jobs:
           DEBUG: "1"
         run: |
           mkdir -p "$OUT_DIR"
+          # The runner's Bazel configuration disables external repo downloads;
+          # Kleaf Bzlmod requires fetching rules_shell and other declared deps.
+          sed -i 's/--experimental_writable_outputs/--repository_disable_download=false --experimental_writable_outputs/' kernel_device_modules-6.12/build.sh
           kernel_device_modules-6.12/build.sh
       - uses: actions/upload-artifact@v4
         if: always()
