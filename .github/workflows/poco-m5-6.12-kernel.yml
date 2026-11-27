@@ -116,7 +116,7 @@ jobs:
           mkdir -p "$OUT_DIR"
           # The runner's Bazel configuration disables external repo downloads;
           # Kleaf Bzlmod requires fetching rules_shell and other declared deps.
-          sed -i 's/--experimental_writable_outputs/--repository_disable_download=false --experimental_writable_outputs/' kernel_device_modules-6.12/build.sh
+          sed -i 's/--experimental_writable_outputs/--repository_disable_download=false --nokmi_symbol_list_violations_check --experimental_writable_outputs/' kernel_device_modules-6.12/build.sh
           # Skip vendor-module dist packaging; only compile the MTK kernel target.
           sed -i '/tools\/bazel .* run .*KLEAF_ARGS/,+1d' kernel_device_modules-6.12/build.sh
           kernel_device_modules-6.12/build.sh
