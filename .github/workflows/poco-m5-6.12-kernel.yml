@@ -65,6 +65,9 @@ jobs:
           git clone --depth=1 --branch android-16-release-w1vo36.88-36-7 \
             https://github.com/MotorolaMobilityLLC/kernel-build-bazel_mgk_rules.git \
             build/bazel_mgk_rules
+          git clone --depth=1 --branch android-16-release-w2wv36.55-25-15 \
+            https://github.com/MotorolaMobilityLLC/kernel_platform-build-bazel_common_rules.git \
+            build/bazel_common_rules
           cp build/bazel_mgk_rules/bzlmod/mgk.MODULE.bazel MODULE.bazel
           mkdir -p "$GITHUB_WORKSPACE/../vendor/mediatek/kernel_modules"
           ln -s ../vendor vendor
