@@ -54,8 +54,10 @@ jobs:
         shell: bash
         run: |
           git clone --depth=1 --branch lineage-23.2-kernel-6.12 \
-            https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12.git \
+            https://github.com/jvaswb/android_kernel_devices_modules-6.12.git \
             kernel_device_modules-6.12
+          git -C kernel_device_modules-6.12 fetch --depth=1 origin 293237daf841ec7288765775832ac9a3f51a6872
+          git -C kernel_device_modules-6.12 checkout --detach 293237daf841ec7288765775832ac9a3f51a6872
       - name: Add MediaTek MGK Kleaf rules
         shell: bash
         run: |
