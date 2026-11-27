@@ -65,8 +65,7 @@ jobs:
           git clone --depth=1 --branch android-16-release-w1vo36.88-36-7 \
             https://github.com/MotorolaMobilityLLC/kernel-build-bazel_mgk_rules.git \
             build/bazel_mgk_rules
-          printf 'module(name = "poco_m5_mgk")\n' > MODULE.bazel
-          cat build/bazel_mgk_rules/bzlmod/mgk_repo.MODULE.bazel >> MODULE.bazel
+          cp build/bazel_mgk_rules/bzlmod/mgk.MODULE.bazel MODULE.bazel
           mkdir -p "$GITHUB_WORKSPACE/../vendor/mediatek/kernel_modules"
           ln -s ../vendor vendor
       - name: Compile and apply Poco M5 DTBO
