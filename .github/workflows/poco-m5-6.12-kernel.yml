@@ -137,6 +137,9 @@ jobs:
           # The runner's Bazel configuration disables external repo downloads;
           # Kleaf Bzlmod requires fetching rules_shell and other declared deps.
           sed -i 's/--experimental_writable_outputs/--repository_disable_download=false --nokmi_symbol_list_violations_check --experimental_writable_outputs/' kernel_device_modules-6.12/build.sh
+          # Skip vendor-module dist packaging; only compile the MTK kernel target.
+          # The customer_dist target currently analyzes unavailable Poco vendor packages.
+          sed -i '/tools\/bazel .* run .*KLEAF_ARGS/,+1d' kernel_device_modules-6.12/build.sh
           kernel_device_modules-6.12/build.sh
           mkdir -p out/kernel-only
           find "$OUT_DIR" -type f \( -name Image -o -name Image.gz -o -name vmlinux -o -name .config \) -exec cp --parents {} out/kernel-only/ \;
