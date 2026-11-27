@@ -109,7 +109,7 @@ jobs:
           KERNEL_DIR: kernel_device_modules-6.12
           PROJECT: mgk_64_k612
           MODE: ${{ inputs.mode || 'user' }}
-          TARGET: //kernel_device_modules-6.12:mgk_64_k612
+          TARGET: //kernel_device_modules-6.12:mgk_64_k612_kernel_aarch64
           OUT_DIR: ${{ github.workspace }}/out/mtk
           DEBUG: "1"
         run: |
@@ -121,11 +121,15 @@ jobs:
           sed -i '/tools\/bazel .* run .*KLEAF_ARGS/,+1d' kernel_device_modules-6.12/build.sh
           kernel_device_modules-6.12/build.sh
           mkdir -p out/kernel-only
-          find "$OUT_DIR" -type f \( -name Image -o -name vmlinux -o -name .config \) -exec cp --parents {} out/kernel-only/ \;
+          find "$OUT_DIR" -type f \( -name Image -o -name Image.gz -o -name vmlinux -o -name .config \) -exec cp --parents {} out/kernel-only/ \;
+          if ! find out/kernel-only -type f \( -name Image -o -name Image.gz \) -print -quit | grep -q .; then
+            echo "Kernel binary Image not found; refusing a false-green CI result."
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: poco-m5-6.12-kernel-${{ inputs.mode }}
+          name: poco-m5-6.12-kernel-image-${{ inputs.mode || 'user' }}-diagnostic
           path: |
             out/dtbo/**
             out/kernel-only/**
