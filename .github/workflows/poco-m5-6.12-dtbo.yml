@@ -20,8 +20,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth=1 --branch lineage-23.2-kernel-6.12 \
-            https://github.com/mt6789-transsion/android_kernel_devices_modules-6.12.git kernel612
+          git init kernel612
+          git -C kernel612 remote add origin https://github.com/jvaswb/android_kernel_devices_modules-6.12.git
+          git -C kernel612 fetch --depth=1 origin 293237daf841ec7288765775832ac9a3f51a6872
+          git -C kernel612 checkout --detach FETCH_HEAD
       - name: Compile Poco M5 overlay against MTK 6.12 bindings
         shell: bash
         run: |
