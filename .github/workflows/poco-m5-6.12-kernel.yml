@@ -126,11 +126,12 @@ jobs:
           KERNEL_DIR: kernel_device_modules-6.12
           PROJECT: mgk_64_k612
           MODE: ${{ inputs.mode || 'user' }}
-          TARGET: //kernel_device_modules-6.12:mgk_64_k612_kernel_aarch64.${{ inputs.mode || 'user' }}
+          TARGET: //kernel_device_modules-6.12:mgk_64_k612_kernel_aarch64
           OUT_DIR: ${{ github.workspace }}/out/mtk
           DEBUG: "1"
         run: |
           mkdir -p "$OUT_DIR"
+          # build.sh appends MODE to the base TARGET above; do not add .user/.userdebug here.
           # Kernel-only target: matching Poco vendor-module sources remain unresolved.
           # This artifact is diagnostic and does not establish module compatibility.
           # The runner's Bazel configuration disables external repo downloads;
