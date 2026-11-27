@@ -58,6 +58,10 @@ jobs:
             kernel_device_modules-6.12
           git -C kernel_device_modules-6.12 fetch --depth=1 origin 293237daf841ec7288765775832ac9a3f51a6872
           git -C kernel_device_modules-6.12 checkout --detach 293237daf841ec7288765775832ac9a3f51a6872
+          # hbt_driver_cus is absent from Poco M5's published modules.load lists;
+          # omit this unrelated proprietary package from the device-only CI probe.
+          sed -i '\#../vendor/mediatek/kernel_modules/hbt_driver_cus#d' \
+            kernel_device_modules-6.12/build.config.mtk_kernel_device_modules
           # This pinned tree has three truncated Starlark fragments in this file;
           # kernel-only target needs the surrounding Kconfig/header filegroups only.
           sed -i '28,57d' kernel_device_modules-6.12/drivers/misc/mediatek/flashlight/BUILD.bazel
