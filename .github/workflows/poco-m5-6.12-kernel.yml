@@ -58,6 +58,9 @@ jobs:
             kernel_device_modules-6.12
           git -C kernel_device_modules-6.12 fetch --depth=1 origin 293237daf841ec7288765775832ac9a3f51a6872
           git -C kernel_device_modules-6.12 checkout --detach 293237daf841ec7288765775832ac9a3f51a6872
+          # This pinned tree has three truncated Starlark fragments in this file;
+          # kernel-only target needs the surrounding Kconfig/header filegroups only.
+          sed -i '28,57d' kernel_device_modules-6.12/drivers/misc/mediatek/flashlight/BUILD.bazel
           # These GKI outputs are already included by get_gki_modules_list();
           # drop duplicate eng/userdebug additions from this MTK tree.
           sed -i '/"fs\/pstore\/pstore_blk.ko",/d; /"fs\/pstore\/pstore_zone.ko",/d' \
